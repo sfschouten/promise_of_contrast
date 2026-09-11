@@ -1,0 +1,13 @@
+md5: 8ce03a1e6d54e25c33c7438d46162646
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/nyu-mll/glue
+    rev_lock: bcdcba79d07bc864c1c254ccfcedcce55bcc9a8c
+outs:
+- md5: 29f000a58496526621ddfb7e519c8cc7.dir
+  size: 162286103
+  nfiles: 36
+  hash: md5
+  path: glue

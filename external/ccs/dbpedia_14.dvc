@@ -1,0 +1,13 @@
+md5: 27b3a7babf1bd6e40faa7cf400af3d27
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/fancyzhx/dbpedia_14
+    rev_lock: 9abd46cf7fc8b4c64290f26993c540b92aa145ac
+outs:
+- md5: a462a90b86fd8486647dd2d1ebc4f0ea.dir
+  size: 119433190
+  nfiles: 4
+  hash: md5
+  path: dbpedia_14

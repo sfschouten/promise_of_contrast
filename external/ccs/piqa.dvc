@@ -1,0 +1,13 @@
+md5: 4bef2132ee9c96b45e228a2c6da388f7
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/nthngdy/piqa
+    rev_lock: 467437b6dc793b01c07946dd3e800b9bd3199993
+outs:
+- md5: 7f683a90aa6625548cc9f7ea3270f76b.dir
+  size: 3463602
+  nfiles: 5
+  hash: md5
+  path: piqa

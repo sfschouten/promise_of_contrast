@@ -1,0 +1,13 @@
+md5: fcc65d67bfa7d4abd5f965b331cda588
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/stanfordnlp/snli
+    rev_lock: cdb5c3d5eed6ead6e5a341c8e56e669bb666725b
+outs:
+- md5: f6bcfeb880c264b5698dce38794f1dbd.dir
+  size: 20456444
+  nfiles: 5
+  hash: md5
+  path: snli

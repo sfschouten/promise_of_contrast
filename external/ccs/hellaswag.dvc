@@ -1,0 +1,13 @@
+md5: 6cd075f1cf0706b5b174b6cf64be0329
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/Rowan/hellaswag
+    rev_lock: 218ec52e09a7e7462a5400043bb9a69a41d06b76
+outs:
+- md5: 381a08d6447105a8e64e657b9d050cbb.dir
+  size: 36802065
+  nfiles: 5
+  hash: md5
+  path: hellaswag

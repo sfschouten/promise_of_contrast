@@ -1,0 +1,13 @@
+md5: 6ee56f607ab54befdb7ca10dc4b0e23b
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/allenai/ai2_arc
+    rev_lock: 210d026faf9955653af8916fad021475a3f00453
+outs:
+- md5: 2ec4f7adc63305bcff1e4dc18461e8a7.dir
+  size: 1222570
+  nfiles: 8
+  hash: md5
+  path: arc

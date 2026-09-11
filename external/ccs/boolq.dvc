@@ -1,0 +1,13 @@
+md5: d43ee7f946dfe67e0280d6209914d151
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/google/boolq
+    rev_lock: 35b264d03638db9f4ce671b711558bf7ff0f80d5
+outs:
+- md5: e4dc6ed283586c0526f6c5c5b3ba1252.dir
+  size: 4950520
+  nfiles: 4
+  hash: md5
+  path: boolq

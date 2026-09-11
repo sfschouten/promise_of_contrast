@@ -1,0 +1,13 @@
+md5: 005e068219ccff7b4c9b840b29aa7670
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/ariesutiono/entailment-bank-v3
+    rev_lock: 2d1b8010d08c2e6ce17c4879447b9a3ce7531d5e
+outs:
+- md5: 1bb206718f729ebc6a6ac53ff442ce9a.dir
+  size: 46128988
+  nfiles: 12
+  hash: md5
+  path: entailment_bank

@@ -1,0 +1,13 @@
+md5: c27dd188678e9ff7c8a282319498d4da
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/super_glue
+    rev_lock: 3de24cf8022e94f4ee4b9d55a6f539891524d646
+outs:
+- md5: f940f09b7896dfe7a782630db89858fb.dir
+  size: 102539920
+  nfiles: 31
+  hash: md5
+  path: super_glue

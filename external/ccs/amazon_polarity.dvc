@@ -1,0 +1,13 @@
+md5: e20f2c2b2b86dfbab812a9a2798fdbc9
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/SetFit/amazon_polarity
+    rev_lock: 43dd5352c9b2896a6dac6bd30f7fd5c471e83313
+outs:
+- md5: 98dabc3dadea8d939b5840da3e8b5ce7.dir
+  size: 1949833186
+  nfiles: 4
+  hash: md5
+  path: amazon_polarity

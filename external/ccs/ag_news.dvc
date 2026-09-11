@@ -1,0 +1,13 @@
+md5: 90c77fcb8aeeebacd6db5bbe6f97e652
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/fancyzhx/ag_news
+    rev_lock: eb185aade064a813bc0b7f42de02595523103ca4
+outs:
+- md5: 97cf8b2ca496960967243bb9a73b3151.dir
+  size: 19829511
+  nfiles: 4
+  hash: md5
+  path: ag_news

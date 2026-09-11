@@ -1,0 +1,13 @@
+md5: ccb043160f1c7901b095991d84b0386c
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/lecslab/story_cloze
+    rev_lock: f1d44cdf236872e4bda9ece1dd15417c50098a32
+outs:
+- md5: 6dbc6bdecd78cbfe48fd4084fa1d0133.dir
+  size: 677165
+  nfiles: 5
+  hash: md5
+  path: story_cloze

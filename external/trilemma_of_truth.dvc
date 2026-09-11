@@ -1,0 +1,13 @@
+md5: 0d3511aea8289ca03c790361778569ae
+frozen: true
+deps:
+- path: .
+  repo:
+    url: https://huggingface.co/datasets/carlomarxx/trilemma-of-truth
+    rev_lock: 89776b841a01e1f57f549a70c9e66838cbe21c98
+outs:
+- md5: 15ce835140fe69dbfe5cedcd704fd053.dir
+  size: 2669945
+  nfiles: 11
+  hash: md5
+  path: trilemma_of_truth

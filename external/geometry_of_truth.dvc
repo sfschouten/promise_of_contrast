@@ -1,0 +1,13 @@
+md5: 5a4da0cb79cfc5194e8d6bc5d31e0798
+frozen: true
+deps:
+- path: datasets
+  repo:
+    url: https://github.com/saprmarks/geometry-of-truth
+    rev_lock: 5d1c630c44f7e50bda7ad86d601ccadf9abc5ddb
+outs:
+- md5: 18bed908295c479b8f86301ab01aadc6.dir
+  size: 83076552
+  nfiles: 21
+  hash: md5
+  path: geometry_of_truth
