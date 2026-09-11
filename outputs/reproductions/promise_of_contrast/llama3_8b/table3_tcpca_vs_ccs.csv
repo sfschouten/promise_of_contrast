@@ -1,0 +1,10 @@
+dataset,CCS min,CCS med,CCS max,CRC-TPC,tcPCA,GCC
+comparisons,100,100,100,100,100,100
+sp_en_trans,100,100,100,100,100,100
+cities,100,100,100,100,100,100
+amazon,95,95,95,95,95,95
+imdb,92,93,94,75,92,92
+ent_bank,50,98,99,98,97,98
+snli,55,93,95,91,93,93
+copa,48,50,59,50,50,50
+rte,48,56,65,56,55,56

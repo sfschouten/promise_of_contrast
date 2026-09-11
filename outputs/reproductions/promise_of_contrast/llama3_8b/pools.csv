@@ -1,0 +1,10 @@
+dataset,pairs,train pairs,eval pairs
+comparisons,1000,500,500
+sp_en_trans,354,177,177
+cities,1000,500,500
+amazon,1000,500,500
+imdb,1000,500,500
+ent_bank,1000,500,500
+snli,1000,500,500
+copa,500,250,250
+rte,1000,500,500

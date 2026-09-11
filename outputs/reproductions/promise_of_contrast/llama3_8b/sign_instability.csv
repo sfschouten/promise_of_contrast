@@ -1,0 +1,10 @@
+dataset,answer flipped (%),period flipped (%)
+comparisons,53,52
+sp_en_trans,55,51
+cities,55,43
+amazon,53,53
+imdb,37,50
+ent_bank,45,52
+snli,50,52
+copa,40,50
+rte,42,57

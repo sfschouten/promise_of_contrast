@@ -1,0 +1,7 @@
+contrast,norm,unit_vector_tcpc_0_1_2,angle_to_base,angle_to_truth,angle_to_negation,method,basis
+negation,3.0879,"[1.0, -0.02500000037252903, -0.0010000000474974513]",87.0,87.87,,cross_covariance_8,tcPC
+base,1.4725,"[0.07800000160932541, 0.996999979019165, -0.014000000432133675]",,77.92,87.0,cross_covariance_8,tcPC
+truth,0.5743,"[0.04399999976158142, 0.2199999988079071, 0.9750000238418579]",77.92,,87.87,cross_covariance_8,tcPC
+negation,2.0009,"[1.0, -0.004000000189989805, -0.014000000432133675]",89.8,89.94,,generalized_cross_covariance_8,GCC
+base,1.9113,"[-0.00800000037997961, -1.0, -0.014000000432133675]",,89.8,89.8,generalized_cross_covariance_8,GCC
+truth,1.9068,"[0.013000000268220901, -0.017000000923871994, 1.0]",89.8,,89.94,generalized_cross_covariance_8,GCC

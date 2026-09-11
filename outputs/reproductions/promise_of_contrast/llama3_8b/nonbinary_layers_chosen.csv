@@ -1,0 +1,7 @@
+figure,basis,layer
+days_of_week,g-tcPCA,15
+days_of_week,tcPCA,17
+months_of_year,g-tcPCA,8
+months_of_year,tcPCA,24
+trinary,g-tcPCA,12
+trinary,tcPCA,12

@@ -1,0 +1,13 @@
+edge,length,relative_to_mean,method,basis
+pc-pi,2.5168,0.2923,cross_covariance_8,tcPC
+pc-nc,11.1714,1.2976,cross_covariance_8,tcPC
+pc-ni,11.1294,1.2927,cross_covariance_8,tcPC
+pi-nc,10.8675,1.2623,cross_covariance_8,tcPC
+pi-ni,10.9337,1.27,cross_covariance_8,tcPC
+nc-ni,5.0378,0.5851,cross_covariance_8,tcPC
+pc-pi,2.6005,0.9487,generalized_cross_covariance_8,GCC
+pc-nc,2.7743,1.0121,generalized_cross_covariance_8,GCC
+pc-ni,2.7675,1.0097,generalized_cross_covariance_8,GCC
+pi-nc,2.7655,1.0089,generalized_cross_covariance_8,GCC
+pi-ni,2.7564,1.0056,generalized_cross_covariance_8,GCC
+nc-ni,2.7821,1.015,generalized_cross_covariance_8,GCC

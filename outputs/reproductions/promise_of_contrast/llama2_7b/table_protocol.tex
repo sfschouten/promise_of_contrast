@@ -1,0 +1,14 @@
+    \begin{tabular}{lp{0.72\linewidth}}
+    \toprule
+    Model & \texttt{meta-llama/Llama-2-7b-hf}, auto, batch 4 \\
+    Layer & output of decoder block 15 (\texttt{hidden\_states[16]}) \\
+    Tokens & \textit{answer} = second-to-last, \textit{period} = last \\
+    Split & 50/50 over pairs, ordered (fixed across seeds) \\
+    Centring & per branch (each of $X^+$, $X^-$ separately) \\
+    CCS & adamw, lr 0.001, weight decay 0.01, 1000 epochs, 1 restart, 30 seeds; no variance standardisation \\
+    tcPCA & eigenvectors of $\mathrm{cov}(X^+{+}X^-) - N\,\mathrm{cov}(X^*)$, exact \\
+    \wtcpca & same, after whitening by $\mathrm{cov}(X^*)$ (ridge $10^{-8}\|\Sigma\|_F$) \\
+    Orientation & aligned with $\bar{x}_\mathrm{true} - \bar{x}_\mathrm{false}$ on the train split \\
+    Metric & $\tfrac12(p(x^+) + 1 - p(x^-)) > 0.5$ on held-out pairs, no calibration \\
+    \bottomrule
+    \end{tabular}

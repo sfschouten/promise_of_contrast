@@ -1,0 +1,7 @@
+collapses,opposite_edges,collapsed_axis_norm,surviving,surviving_norms,side_ratio,diagonal_ratio,diagonal_angle_deg,method,basis
+negation,"(pc,pi) | (nc,ni)",3.0879,base x truth,1.473 x 0.574,0.3903,0.8679,42.01,cross_covariance_8,tcPC
+base,"(pc,nc) | (pi,ni)",1.4725,negation x truth,3.088 x 0.574,0.1821,0.9906,20.64,cross_covariance_8,tcPC
+truth,"(pc,ni) | (pi,nc)",0.5743,negation x base,3.088 x 1.473,0.4666,0.9656,50.0,cross_covariance_8,tcPC
+negation,"(pc,pi) | (nc,ni)",2.0009,base x truth,1.911 x 1.907,0.9977,0.9965,89.87,generalized_cross_covariance_8,GCC
+base,"(pc,nc) | (pi,ni)",1.9113,negation x truth,2.001 x 1.907,0.953,0.999,87.24,generalized_cross_covariance_8,GCC
+truth,"(pc,ni) | (pi,nc)",1.9068,negation x base,2.001 x 1.911,0.9552,0.9965,87.38,generalized_cross_covariance_8,GCC
