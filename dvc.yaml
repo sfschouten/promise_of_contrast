@@ -1,0 +1,506 @@
+stages:
+  generate:
+    foreach: ${dataset}
+    do:
+      cmd: python scripts/generate_${key}.py
+      deps:
+        - scripts/generate_${key}.py
+        - src/data/
+        - ${item.data_dir}
+      params:
+        - dataset.${key}
+      outs:
+        - data/raw/${key}.jsonl
+
+  make_pairs:
+    foreach: ${families}
+    do:
+      cmd: python scripts/make_pairs.py --family ${key}
+      deps:
+        - scripts/make_pairs.py
+        - src/data/
+        - ${item.path}
+      params:
+        - families.${key}
+      outs:
+        - data/processed/pairs_${key}.jsonl
+
+  preprocess:
+    foreach: ${families}
+    do:
+      cmd: python scripts/preprocess.py --family ${key}
+      deps:
+        - scripts/preprocess.py
+        - src/data/
+        - templates/
+        - data/processed/pairs_${key}.jsonl
+      params:
+        - preprocessing
+        - families.${key}
+      outs:
+        - data/processed/samples_${key}.jsonl
+        - data/processed/graphs_${key}.jsonl
+
+  extract_activations:
+    foreach: ${runs}
+    do:
+      cmd: python scripts/extract_activations.py --run ${key}
+      deps:
+        - scripts/extract_activations.py
+        - src/activations/
+        - data/processed/samples_${item.family}.jsonl
+      params:
+        - models.${item.model}
+        - activations
+        - output.activations_dir
+      outs:
+        - data/activations/${key}
+
+  train_probes:
+    foreach: ${runs}
+    do:
+      cmd: python scripts/train_probes.py --run ${key}
+      deps:
+        - scripts/train_probes.py
+        - src/probing/
+        - src/results/
+        - data/processed/samples_${item.family}.jsonl
+        - data/processed/graphs_${item.family}.jsonl
+        - data/activations/${key}
+      params:
+        - models.${item.model}
+        - activations
+        - probing.train_split
+        - probing.seed
+        - probing.layers
+        - probing.train_positions
+        - probing.label_descriptors
+        - probing.methods
+        - probing_profiles
+        - output.activations_dir
+        - output.probes_dir
+      outs:
+        # persist: train_probes.py already skips probes whose config_hash is unchanged
+        # (see _load_probe_cache), but DVC deletes a stage's outputs before running it,
+        # which threw that cache away and re-fitted everything -- including the 7 CCS
+        # variants x 30 seeds -- whenever a single method was added to the profile.
+        # Keeping the directory lets the incremental path do its job.  Probes for methods
+        # dropped from the profile are not carried over: the script rewrites the manifest
+        # and the params file from what it fitted or deliberately reused.
+        - data/probes/${key}:
+            persist: true
+
+  train_probes_compound:
+    foreach: ${run_compounds}
+    do:
+      cmd: python scripts/train_probes.py --run-compound ${key}
+      deps:
+        - scripts/train_probes.py
+        - src/probing/
+        - src/results/
+        - data/activations/${item.model}__${item.family}
+      params:
+        - models.${item.model}
+        - activations
+        - probing.train_split
+        - probing.seed
+        - probing.layers
+        - probing.train_positions
+        - probing.label_descriptors
+        - probing.methods
+        - output.activations_dir
+        - output.probes_dir
+        - compounds.${item.compound}
+      outs:
+        # persist: train_probes.py already skips probes whose config_hash is unchanged
+        # (see _load_probe_cache), but DVC deletes a stage's outputs before running it,
+        # which threw that cache away and re-fitted everything -- including the 7 CCS
+        # variants x 30 seeds -- whenever a single method was added to the profile.
+        # Keeping the directory lets the incremental path do its job.  Probes for methods
+        # dropped from the profile are not carried over: the script rewrites the manifest
+        # and the params file from what it fitted or deliberately reused.
+        - data/probes/${key}:
+            persist: true
+
+  evaluate_probes:
+    foreach: ${runs}
+    do:
+      cmd: python scripts/evaluate_probes.py --run ${key}
+      deps:
+        - scripts/evaluate_probes.py
+        - src/probing/
+        - src/results/
+        - data/activations/${key}
+        - data/probes/${key}
+      params:
+        - models.${item.model}
+        - activations
+        - probing.eval_positions
+        - probing_profiles
+        - output.activations_dir
+        - output.probes_dir
+        - output.eval_results_dir
+      outs:
+        - data/eval_results/${key}.duckdb
+
+  evaluate_probes_compound:
+    foreach: ${run_compounds}
+    do:
+      cmd: python scripts/evaluate_probes.py --run-compound ${key}
+      deps:
+        - scripts/evaluate_probes.py
+        - src/probing/
+        - src/results/
+        - data/activations/${item.model}__${item.family}
+        - data/probes/${key}
+      params:
+        - models.${item.model}
+        - activations
+        - probing.eval_positions
+        - output.activations_dir
+        - output.probes_dir
+        - output.eval_results_dir
+        - compounds.${item.compound}
+      outs:
+        - data/eval_results/${key}.duckdb
+
+  merge_results:
+    cmd: python scripts/merge_results.py
+    deps:
+      - scripts/merge_results.py
+      - data/eval_results/
+    params:
+      - output.eval_results_dir
+      - output.results_db
+    outs:
+      - data/results.duckdb
+
+
+
+  report_subspace_scatter:
+    cmd: python scripts/report_subspace_scatter.py
+    deps:
+      - scripts/report_subspace_scatter.py
+      - src/probing/
+      - src/activations/
+      - data/probes/
+      - data/activations/
+    params:
+      - models.llama3_8b
+      - activations
+      - output.activations_dir
+      - output.probes_dir
+      - output.reports_dir
+      - reporting.yaml:
+          - scatter
+    outs:
+      - outputs/reports/subspace_scatter.pdf:
+          cache: false
+
+  report_subspace_scatter_3d:
+    cmd: python scripts/report_subspace_scatter.py --3d
+    deps:
+      - scripts/report_subspace_scatter.py
+      - src/probing/
+      - src/activations/
+      - data/probes/
+      - data/activations/
+    params:
+      - models.llama3_8b
+      - activations
+      - output.activations_dir
+      - output.probes_dir
+      - output.reports_dir
+      - reporting.yaml:
+          - scatter
+    outs:
+      - outputs/reports/subspace_scatter_3d.pdf:
+          cache: false
+
+
+
+  report_subspace_scatter_cities_grid:
+    cmd: python scripts/report_subspace_scatter.py --runs llama3_8b__cities_grid --output-name cities_grid_subspace_scatter
+    deps:
+      - scripts/report_subspace_scatter.py
+      - src/probing/
+      - src/activations/
+      - data/probes/llama3_8b__cities_grid
+      - data/activations/llama3_8b__cities_grid
+    params:
+      - models.llama3_8b
+      - activations
+      - output.activations_dir
+      - output.probes_dir
+      - output.reports_dir
+      - reporting.yaml:
+          - scatter
+    outs:
+      - outputs/reports/cities_grid_subspace_scatter.pdf:
+          cache: false
+
+  report_subspace_scatter_cities_grid_3d:
+    cmd: python scripts/report_subspace_scatter.py --3d --runs llama3_8b__cities_grid --output-name cities_grid_subspace_scatter_3d
+    deps:
+      - scripts/report_subspace_scatter.py
+      - src/probing/
+      - src/activations/
+      - data/probes/llama3_8b__cities_grid
+      - data/activations/llama3_8b__cities_grid
+    params:
+      - models.llama3_8b
+      - activations
+      - output.activations_dir
+      - output.probes_dir
+      - output.reports_dir
+      - reporting.yaml:
+          - scatter
+    outs:
+      - outputs/reports/cities_grid_subspace_scatter_3d.pdf:
+          cache: false
+
+  report_subspace_scatter_cities_grid_llama2:
+    cmd: python scripts/report_subspace_scatter.py --runs llama2_7b__cities_grid --output-name cities_grid_llama2_subspace_scatter
+    deps:
+      - scripts/report_subspace_scatter.py
+      - src/probing/
+      - src/activations/
+      - data/probes/llama2_7b__cities_grid
+      - data/activations/llama2_7b__cities_grid
+    params:
+      - models.llama2_7b
+      - activations
+      - output.activations_dir
+      - output.probes_dir
+      - output.reports_dir
+      - reporting.yaml:
+          - scatter
+    outs:
+      - outputs/reports/cities_grid_llama2_subspace_scatter.pdf:
+          cache: false
+
+  report_subspace_scatter_cities_grid_llama2_3d:
+    cmd: python scripts/report_subspace_scatter.py --3d --runs llama2_7b__cities_grid --output-name cities_grid_llama2_subspace_scatter_3d
+    deps:
+      - scripts/report_subspace_scatter.py
+      - src/probing/
+      - src/activations/
+      - data/probes/llama2_7b__cities_grid
+      - data/activations/llama2_7b__cities_grid
+    params:
+      - models.llama2_7b
+      - activations
+      - output.activations_dir
+      - output.probes_dir
+      - output.reports_dir
+      - reporting.yaml:
+          - scatter
+    outs:
+      - outputs/reports/cities_grid_llama2_subspace_scatter_3d.pdf:
+          cache: false
+
+  report_subspace_scatter_cities_grid_html:
+    cmd: python scripts/report_subspace_scatter.py --html --runs llama3_8b__cities_grid --output-name cities_grid_subspace_scatter_3d
+    deps:
+      - scripts/report_subspace_scatter.py
+      - src/probing/
+      - src/activations/
+      - data/probes/llama3_8b__cities_grid
+      - data/activations/llama3_8b__cities_grid
+    params:
+      - models.llama3_8b
+      - activations
+      - output.activations_dir
+      - output.probes_dir
+      - output.reports_dir
+      - reporting.yaml:
+          - scatter
+    outs:
+      - outputs/reports/cities_grid_subspace_scatter_3d.html:
+          cache: false
+
+  report_subspace_scatter_cities_grid_llama2_html:
+    cmd: python scripts/report_subspace_scatter.py --html --runs llama2_7b__cities_grid --output-name cities_grid_llama2_subspace_scatter_3d
+    deps:
+      - scripts/report_subspace_scatter.py
+      - src/probing/
+      - src/activations/
+      - data/probes/llama2_7b__cities_grid
+      - data/activations/llama2_7b__cities_grid
+    params:
+      - models.llama2_7b
+      - activations
+      - output.activations_dir
+      - output.probes_dir
+      - output.reports_dir
+      - reporting.yaml:
+          - scatter
+    outs:
+      - outputs/reports/cities_grid_llama2_subspace_scatter_3d.html:
+          cache: false
+
+
+
+
+
+  report_eigenspectra:
+    cmd: python scripts/report_eigenspectra.py
+    deps:
+      - scripts/report_eigenspectra.py
+      - data/probes/
+    params:
+      - output.probes_dir
+      - output.reports_dir
+    outs:
+      - outputs/reports/eigenspectra_heatmap.pdf:
+          cache: false
+      - outputs/reports/eigenspectra_ridgeline.pdf:
+          cache: false
+
+  report_accuracies:
+    cmd: python scripts/report_accuracies.py
+    deps:
+      - scripts/report_accuracies.py
+      - data/results.duckdb
+    params:
+      - output.results_db
+      - output.reports_dir
+      - probing.methods
+
+  report_max_accuracy:
+    cmd: python scripts/report_max_accuracy.py
+    deps:
+      - scripts/report_max_accuracy.py
+      - data/results.duckdb
+    params:
+      - output.results_db
+      - output.reports_dir
+    outs:
+      - outputs/reports/max_accuracy.pdf:
+          cache: false
+
+  report_pairs:
+    cmd: python scripts/report_pairs.py
+    deps:
+      - scripts/report_pairs.py
+      - data/processed/
+    params:
+      - output.reports_dir
+    outs:
+      - outputs/reports/pairs_report.pdf:
+          cache: false
+
+  report_pairs_tokens:
+    cmd: python scripts/report_pairs.py --tokenize
+    deps:
+      - scripts/report_pairs.py
+      - data/processed/
+    params:
+      - models.llama3_8b
+      - output.reports_dir
+    outs:
+      - outputs/reports/pairs_report_tokens.pdf:
+          cache: false
+
+
+
+  reproduce_burns_2023:
+    cmd: python scripts/reproductions/burns_2023/reproduce.py
+    deps:
+      - scripts/reproductions/burns_2023/reproduce.py
+      - src/probing/
+      - src/activations/
+      - data/activations/llama3_8b__ccs
+      - data/probes/llama3_8b__ccs
+      - data/processed/samples_ccs.jsonl
+    params:
+      - models.llama3_8b
+      - activations.layers
+      - probing.seed
+      - output.reproductions_dir
+    outs:
+      - outputs/reproductions/burns_2023/:
+          cache: false
+
+
+
+  # Accuracy against layer, backing the paper's choice of layer 16.  Its own stage because
+  # it refits probes at every cached layer (CCS with 5 seeds) and takes ~25 min per model.
+  layer_sweep_promise_of_contrast:
+    foreach:
+      llama2_7b:
+        model: llama2_7b
+      llama3_8b:
+        model: llama3_8b
+    do:
+      cmd: python scripts/reproductions/promise_of_contrast/layer_sweep.py --model ${item.model}
+      deps:
+        - scripts/reproductions/promise_of_contrast/layer_sweep.py
+        - src/probing/
+        - data/activations/${item.model}__pwl
+        - data/processed/samples_pwl.jsonl
+      params:
+        - models.${item.model}
+        - probing_profiles.pwl
+        - activations.layers
+      outs:
+        - data/layer_sweep/${item.model}__pwl.csv
+
+  reproduce_promise_of_contrast:
+    foreach:
+      llama2_7b:
+        model: llama2_7b
+      llama3_8b:
+        model: llama3_8b
+    do:
+      cmd: python scripts/reproductions/promise_of_contrast/reproduce.py --model ${item.model}
+      deps:
+        - scripts/reproductions/promise_of_contrast/
+        - src/probing/
+        - src/activations/
+        - data/activations/${item.model}__pwl
+        - data/probes/${item.model}__pwl
+        - data/eval_results/${item.model}__pwl.duckdb
+        - data/processed/samples_pwl.jsonl
+        # The projection figures reuse report_subspace_scatter over the tuple datasets.
+        - data/probes/${item.model}__cities_grid
+        - data/probes/${item.model}__days_of_week
+        - data/probes/${item.model}__tot_city_tv_aff
+        - data/probes/${item.model}__months_of_year
+        - data/layer_sweep/${item.model}__pwl.csv
+        - reporting.yaml
+      params:
+        - models.${item.model}
+        - probing_profiles
+        - output.reproductions_dir
+      outs:
+        - outputs/reproductions/promise_of_contrast/${item.model}/:
+            cache: false
+
+  check_paper:
+    # The paper build target.  It depends on both reproduction outputs, so
+    # `dvc repro check_paper` walks exactly the paper's chain — data, activations, probes,
+    # evaluations, tables, figures — and touches nothing auxiliary.  A clean run of this
+    # one stage is the answer to "does the paper still build?".
+    #
+    # MIND THE LOCK.  `dvc repro` deletes a stage's outputs before re-running it, so if
+    # dvc.lock does not already vouch for an artifact, walking the chain will destroy and
+    # rebuild it — that is how a 15,708-file activation cache got wiped once.  Artifacts
+    # produced outside a completed stage are not in the DVC cache either, so the loss is
+    # not recoverable by `dvc checkout`.  Before the first repro on a tree whose lock is
+    # stale, adopt what is already on disk:
+    #
+    #     dvc commit          # stamp existing outputs into dvc.lock, running nothing
+    #     dvc repro check_paper
+    #
+    # To verify without any chance of touching upstream stages, run the target alone:
+    #
+    #     dvc repro --single-item check_paper
+    cmd: python scripts/reproductions/promise_of_contrast/check_paper.py
+    deps:
+      - scripts/reproductions/promise_of_contrast/check_paper.py
+      - outputs/reproductions/promise_of_contrast/llama2_7b
+      - outputs/reproductions/promise_of_contrast/llama3_8b
+    outs:
+      - outputs/reproductions/promise_of_contrast/CHECKS.md:
+          cache: false

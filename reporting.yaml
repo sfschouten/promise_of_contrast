@@ -1,0 +1,83 @@
+scatter:
+  color_by: ''              # default: the probe's label descriptor
+  color_labels: {}          # default: display raw values
+  shape_by: dataset_name    # descriptor to encode via marker shape ('' = all circles)
+  shape_labels:             # maps raw dataset_name → short display label
+    tot_city_tf_aff: city
+    tot_city_tn_aff: city
+    tot_city_fn_aff: city
+    tot_city_tf_neg: city
+    tot_city_tn_neg: city
+    tot_city_fn_neg: city
+    tot_city_na_t: city
+    tot_city_na_f: city
+    tot_city_na_n: city
+    tot_med_tf_aff: med
+    tot_med_tn_aff: med
+    tot_med_fn_aff: med
+    tot_med_tf_neg: med
+    tot_med_tn_neg: med
+    tot_med_fn_neg: med
+    tot_med_na_t: med
+    tot_med_na_f: med
+    tot_med_na_n: med
+    tot_word_tf_aff: word
+    tot_word_tn_aff: word
+    tot_word_fn_aff: word
+    tot_word_tf_neg: word
+    tot_word_tn_neg: word
+    tot_word_fn_neg: word
+    tot_word_na_t: word
+    tot_word_na_f: word
+    tot_word_na_n: word
+    snli_ec: hyp
+    snli_en: hyp
+    snli_cn: hyp
+    snli_pe: prem
+    snli_pc: prem
+    snli_meta_h_qc: meta
+    snli_meta_h_qi: meta
+    snli_meta_q_hc: meta
+    snli_meta_q_hi: meta
+    snli_meta_hq: meta
+    snli_meta_x: meta
+    snli_meta_p_cc: meta
+    snli_meta_p_ci: meta
+    snli_meta_p_ic: meta
+    snli_meta_p_ii: meta
+    snli_meta_h_qc_s: meta
+    snli_meta_h_qi_s: meta
+    snli_meta_q_hc_s: meta
+    snli_meta_q_hi_s: meta
+    snli_meta_hq_s: meta
+    snli_meta_x_s: meta
+  dpi: 150                  # DPI for rasterized scatter elements in the PDF
+  max_pairs: 200
+  min_vectors: 4
+  max_vectors: 8
+  # views_3d:               # --3d viewing angles as [elev, azim]; default: 3 angles
+  #   - [22, -60]
+  #   - [22, 30]
+  #   - [68, -60]
+  per_source:               # per-family or per-compound overrides
+    cities_grid:            # 2x2 grid: hue = truth, shade = negation
+      color_by: truth
+      color_labels: {1: T, 0: F}
+      shade_by: polarity    # affirmative = darker, negated = lighter
+      shade_labels: {pos: aff, neg: neg}
+      shape_by: ''          # one dataset per page
+    days_of_week:           # color points by the answer day → the cross-cov circle
+      color_by: target
+      shape_by: ''
+      cyclic_color: true            # hue-only ramp around the wheel, in cycle order
+      cyclic_order_by: multiclass_label   # the day's circular index (Mon=0…Sun=6)
+      exclude_datasets: [days_of_week_truth]      # truth-direction page, not the circle
+    months_of_year:         # color points by the answer month → the cross-cov circle
+      color_by: target
+      shape_by: ''
+      cyclic_color: true            # hue-only ramp around the wheel, in cycle order
+      cyclic_order_by: multiclass_label   # the month's circular index (Jan=0…Dec=11)
+      exclude_datasets: [months_of_year_truth]    # truth-direction page, not the circle
+    tot_city_tv_aff:
+      color_by: multiclass_label
+      color_labels: {0: F/aff, 1: T/aff, 2: N/aff}

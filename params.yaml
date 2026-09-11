@@ -1,0 +1,348 @@
+models:
+  llama3_8b:
+    name: meta-llama/Meta-Llama-3.1-8B
+    device: cuda
+    batch_size: 4         # activations are bf16; changing this perturbs them at ~1e-2
+    dtype: auto           # follow the checkpoint (bf16 here); never rely on a library default
+  llama2_7b:
+    name: meta-llama/Llama-2-7b-hf
+    device: cuda
+    batch_size: 4
+    dtype: auto           # Llama-2 ships fp16, Llama-3.1 bf16 — "auto" keeps both native
+
+dataset:
+  tot:
+    hf_repo: carlomarxx/trilemma-of-truth
+    data_dir: external/trilemma_of_truth
+    sub_datasets:
+    - city_locations
+    - med_indications
+    - word_definitions
+    splits:
+    - train
+    - validation
+    - test
+  cities_grid:            # 2x2 negation x content grid over the same city CSVs
+    data_dir: external/geometry_of_truth
+    pair_limits:
+      counterfact_true_false: 4000
+    datasets:
+    - cities
+    - neg_cities
+    - sp_en_trans
+    - neg_sp_en_trans
+    - larger_than
+    - smaller_than
+    - cities_cities_conj
+    - cities_cities_disj
+    - companies_true_false
+    - common_claim_true_false
+    - counterfact_true_false
+  pwl:                    # "Probing Without Labels" — the nine paper datasets
+    data_dir: external      # every source is local and DVC-tracked
+    external_dir: external
+    max_samples_per_dataset: 1000
+    max_chars: 6000         # drop rather than truncate: the answer sits at the end
+    shuffle_seed: 0
+    seed: 0
+    splits: [train, dev, test]        # ent_bank only
+    arc_configs: [ARC-Easy, ARC-Challenge]
+    datasets:
+    - amazon
+    - imdb
+    - copa
+    - rte
+    - cities
+    - comparisons
+    - sp_en_trans
+    - snli
+    - ent_bank
+  ccs:
+    data_dir: external/ccs
+    max_samples_per_dataset: 2000      # cap each raw split before pairing
+    datasets:
+    - imdb
+    - amazon_polarity
+    - ag_news
+    - dbpedia_14
+    - rte
+    - qnli
+    - boolq
+    - copa
+    - hellaswag
+    - piqa
+    - story_cloze
+  days_of_week:                         # Engels et al. 2024 — circular weekday feature
+    data_dir: external/temporal
+    vocab_file: days.json
+    unit: day
+    offsets: [1, 2, 3, 4, 5, 6]         # 7 starts × 6 offsets = 42 complete graphs
+    stem_template: "Let's do some day of the week math. {offset_word_cap} {units} from {start} is"
+  months_of_year:                       # Engels et al. 2024 — circular month feature
+    data_dir: external/temporal
+    vocab_file: months.json
+    unit: month
+    offsets: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]   # 12 starts × 11 offsets = 132 complete graphs
+    stem_template: "Let's do some month of the year math. {offset_word_cap} {units} from {start} is"
+families:
+  tot:
+    path: data/raw/tot.jsonl
+    template: templates/statement.j2
+    max_pairs:                         # null = no family total cap
+    max_pairs_per_type: 500
+    pairings: []
+  pwl:
+    path: data/raw/pwl.jsonl
+    template: templates/statement.j2   # text is already the final rendered prompt
+    max_pairs:                         # null = keep everything the generator emitted
+    max_pairs_per_type:
+    pairings: []                       # pwl.jsonl is already native pairs
+  ccs:
+    path: data/raw/ccs.jsonl
+    template: templates/ccs_claim.j2
+    max_pairs:                         # null = no family total cap
+    max_pairs_per_type: 1000           # per CCS sub-dataset (Burns-like)
+    pairings: []                       # ccs.jsonl is already native pairs
+  cities_grid:
+    path: data/raw/cities_grid.jsonl
+    template: templates/statement.j2   # node text is self-contained
+    max_pairs:
+    max_pairs_per_type:                # 748 cities, all kept
+    pairings: []                       # cities_grid.jsonl is already a graph file
+  days_of_week:
+    path: data/raw/days_of_week.jsonl
+    template: templates/statement.j2   # node text is already final
+    max_pairs:                         # null = no family total cap
+    max_pairs_per_type:                # null = keep all graphs (cap is per sub_dataset)
+    max_pairs_per_dataset:             # cap materialised pairs per edge dataset_name
+      days_of_week_circular: 4000      # ~hidden dim; (882 here, so no-op)
+    pairings: []                       # days_of_week.jsonl is already a graph file
+  months_of_year:
+    path: data/raw/months_of_year.jsonl
+    template: templates/statement.j2   # node text is already final
+    max_pairs:                         # null = no family total cap
+    max_pairs_per_type:                # null = keep all graphs (cap is per sub_dataset)
+    max_pairs_per_dataset:             # cap materialised pairs per edge dataset_name
+      months_of_year_circular: 4000    # ~hidden dim; trims 8712 → 4000
+    pairings: []                       # months_of_year.jsonl is already a graph file
+compounds:
+  tot_city_tv_aff:
+    families:
+    - tot
+    datasets:
+    - tot_city_tf_aff
+    - tot_city_tn_aff
+    - tot_city_fn_aff
+runs:
+  llama2_7b__pwl:
+    model: llama2_7b
+    family: pwl
+    probing: pwl
+  llama3_8b__pwl:
+    model: llama3_8b
+    family: pwl
+    probing: pwl
+  llama3_8b__tot:
+    model: llama3_8b
+    family: tot
+  llama3_8b__ccs:
+    model: llama3_8b
+    family: ccs
+  llama3_8b__days_of_week:
+    model: llama3_8b
+    family: days_of_week
+  llama3_8b__months_of_year:
+    model: llama3_8b
+    family: months_of_year
+  llama3_8b__cities_grid:
+    model: llama3_8b
+    family: cities_grid
+  llama2_7b__cities_grid:
+    model: llama2_7b
+    family: cities_grid
+  llama2_7b__tot:
+    model: llama2_7b
+    family: tot
+  llama2_7b__days_of_week:
+    model: llama2_7b
+    family: days_of_week
+  llama2_7b__months_of_year:
+    model: llama2_7b
+    family: months_of_year
+run_compounds:
+  llama2_7b__tot_city_tv_aff:
+    model: llama2_7b
+    compound: tot_city_tv_aff
+    family: tot
+  llama3_8b__tot_city_tv_aff:
+    model: llama3_8b
+    compound: tot_city_tv_aff
+    family: tot
+  # llama3_8b__snli_premise:    # disabled for initial SNLI test
+  #   model: llama3_8b
+  #   compound: snli_premise
+  #   family: snli
+  # llama3_8b__snli_meta_cc:    # disabled for initial SNLI test
+  #   model: llama3_8b
+  #   compound: snli_meta_cc
+  #   family: snli
+  # llama3_8b__snli_meta:       # disabled for initial SNLI test
+  #   model: llama3_8b
+  #   compound: snli_meta
+  #   family: snli
+preprocessing:
+  input: data/processed/pairs.jsonl
+  seed: 42
+
+activations:
+  layers:
+  # - 0   # disabled
+  - 8
+  # - 9   # disabled
+  - 10
+  # - 11  # disabled
+  - 12
+  # - 13  # disabled
+  - 14
+  - 15
+  - 16
+  - 17
+  - 18
+  # - 19  # skipped
+  - 20
+  # - 21  # skipped
+  - 22
+  # - 23  # skipped
+  - 24
+  # - 31  # disabled
+  token_positions:
+  - last
+  - second_to_last
+  mask_positions:
+  - clause_1
+  - clause_2
+probing:
+  train_split: 0.8
+  seed: 42
+  layers: all
+  train_positions:                # positions used to fit probe directions
+  - last
+  eval_positions: all             # positions at which fitted probes are scored
+  label_descriptors:
+  - label
+  - multiclass_label
+  methods:
+  - name: logistic
+  # - name: diff_in_means        # disabled for minimal test run
+  #   label_descriptor: label
+  - name: cross_covariance
+    n_components: 8
+    label_descriptor: label
+  - name: generalized_cross_covariance
+    n_components: 8
+    label_descriptor: label
+  - name: ccs
+    label_descriptor: label
+  # - name: cross_covariance     # disabled for minimal test run
+  #   n_components: 8
+  #   label_descriptor: label
+# ── per-run probing profiles ──────────────────────────────────────────────────
+# A run opts in with `probing: <name>`; everything else keeps the baseline above.
+probing_profiles:
+  pwl:                              # "Probing Without Labels" protocol
+    train_split: 0.5                # an even split
+    split_strategy: ordered         # the generator already shuffled; the split is a
+                                    # prefix of that order, so it is fixed across seeds
+    centering: per_branch           # each framing minus its own mean, not the midpoint
+    paper_scoring: true             # also report the uncalibrated (p0 + 1 - p1)/2 accuracy
+    sign_from: diff_in_means        # the objectives are invariant under theta -> -theta;
+                                    # orientation is fixed on the train split by alignment
+                                    # with mean(true) - mean(false), then applied unchanged
+                                    # to the held-out split.  "branch_means" is a
+                                    # label-free alternative
+    layers: [15]                    # = hidden_states[16]; see src/activations/extract.py
+    train_positions: [second_to_last, last]   # the answer token and the trailing period
+    eval_positions:  [second_to_last, last]
+    label_descriptors: [label]
+    methods:
+    # Supervised reference points.
+    - name: logistic
+    - name: diff_in_means
+      label_descriptor: label
+    # No contrast_diff_in_means here.  Its direction is mean(branch 0) - mean(branch 1),
+    # which is exactly what `centering: per_branch` above subtracts, so under this profile
+    # it is identically zero (measured: 4e-15 against an uncentered norm of 6.07).  It is
+    # a meaningful probe only under `centering: midpoint` or `none`.
+    # Tuple-contrastive PCA.  beta is unset = the exact contrastive objective; beta 1 is
+    # the variance-penalised variant (see tests/test_tcpca_equivalence.py).
+    - name: cross_covariance
+      n_components: 1
+      label_descriptor: label
+    - name: cross_covariance
+      n_components: 8
+      label_descriptor: label
+    - name: cross_covariance
+      n_components: 1
+      beta: 1.0
+      label_descriptor: label
+    # Whitened tcPCA (the generalised eigenproblem S w = lambda Sigma w): tcPCA after
+    # rescaling every principal direction to unit variance, so directions are ranked by
+    # the share of their variance that is contrastive rather than by its amount.  On
+    # these binary datasets the spectrum is flat (every |lambda| = 2.00): with fewer
+    # pairs than dimensions a whole subspace is perfectly contrastive on the training
+    # pairs, and the ridge term in Sigma picks the highest-variance direction inside it.
+    # n_components 8 is kept for the (flat) spectrum page; n_components 1 is Table 3.
+    - name: generalized_cross_covariance
+      n_components: 1
+      label_descriptor: label
+    - name: generalized_cross_covariance
+      n_components: 8
+      label_descriptor: label
+    # CRC-TPC and the per-component accuracies: PCA of (X_cf - X_base), component k alone.
+    - {name: pca_pair, style: subtract, component_index: 0, label_descriptor: label}
+    - {name: pca_pair, style: subtract, component_index: 1, label_descriptor: label}
+    - {name: pca_pair, style: subtract, component_index: 2, label_descriptor: label}
+    - {name: pca_pair, style: subtract, component_index: 3, label_descriptor: label}
+    - {name: pca_pair, style: subtract, component_index: 4, label_descriptor: label}
+    # CCS and its loss-term ablations / search-space alterations, 30 seeds each.
+    # a1 = weight_norm (unit vectors), a2 = svd_reduce (span of the training data).
+    - {name: ccs, label_descriptor: label, seeds: &PWL_SEEDS
+        [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29],
+       <<: &PWL_CCS {n_epochs: 1000, lr: 0.001, weight_decay: 0.01, n_restarts: 1,
+                     optimizer: adamw, standardize: false, bias: false,
+                     calibrate: false, fix_sign: false},
+       confidence: min_sq, consistency: default}                       # CCS
+    - {name: ccs, label_descriptor: label, seeds: *PWL_SEEDS, <<: *PWL_CCS,
+       confidence: min_sq, consistency: none}                          # L_conf only
+    - {name: ccs, label_descriptor: label, seeds: *PWL_SEEDS, <<: *PWL_CCS,
+       confidence: none, consistency: default}                         # L_cons only
+    - {name: ccs, label_descriptor: label, seeds: *PWL_SEEDS, <<: *PWL_CCS,
+       confidence: none, consistency: default, weight_norm: true}      # L_cons + a1
+    - {name: ccs, label_descriptor: label, seeds: *PWL_SEEDS, <<: *PWL_CCS,
+       confidence: none, consistency: default, svd_reduce: true}       # L_cons + a2
+    - {name: ccs, label_descriptor: label, seeds: *PWL_SEEDS, <<: *PWL_CCS,
+       confidence: none, consistency: default,
+       weight_norm: true, svd_reduce: true}                            # L_cons + a1 + a2
+    - {name: ccs, label_descriptor: label, seeds: *PWL_SEEDS, <<: *PWL_CCS,
+       confidence: min_sq, consistency: default,
+       weight_norm: true, svd_reduce: true}                            # CCS + a1 + a2
+    # The two below exist for the subspace-overlap figure, not for the ablation table.
+    # Tables 1-2 and Figures 1/6 use different probes: the tables vary weight-norm because
+    # it *is* alteration a1, while the figure weight-normalises every objective.  Reusing
+    # the ablation probes for the figure puts lambda^K at 0.74 instead of 0.95-0.97 -- a
+    # gap accuracy cannot see, since it lives in where the direction sits rather than how
+    # it classifies.  L_cons+a1 is already above.
+    - {name: ccs, label_descriptor: label, seeds: *PWL_SEEDS, <<: *PWL_CCS,
+       confidence: min_sq, consistency: default, weight_norm: true}    # CCS + a1
+    - {name: ccs, label_descriptor: label, seeds: *PWL_SEEDS, <<: *PWL_CCS,
+       confidence: min_sq, consistency: none, weight_norm: true}       # L_conf + a1
+output:
+  activations_dir: data/activations
+  eval_results_dir: data/eval_results
+  results_db: data/results.duckdb
+  probes_dir: data/probes
+  plots_dir: outputs/plots
+  reports_dir: outputs/reports
+  reproductions_dir: outputs/reproductions
+
+
