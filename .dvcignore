@@ -1,0 +1,11 @@
+# Add patterns of files dvc should ignore, which could improve
+# the performance. Learn more at
+# https://dvc.org/doc/user-guide/dvcignore
+
+# Python bytecode.  `src/probing/`, `src/data/` and `src/activations/` are declared as
+# stage dependencies, so without this every import rewrites a .pyc inside them, changes
+# the directory hash, and makes `dvc repro` delete and rebuild the probes — running
+# pytest was enough to trigger it.
+__pycache__/
+*.pyc
+*.pyo

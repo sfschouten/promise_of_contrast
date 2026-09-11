@@ -1,0 +1,49 @@
+name: interp
+channels:
+  - pytorch
+  - conda-forge
+  - nvidia
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+
+  # Deep learning
+  - pytorch::pytorch>=2.3
+  - pytorch::torchvision
+  - pytorch::pytorch-cuda=12.1
+
+  # HuggingFace
+  - conda-forge::transformers>=4.40
+  - conda-forge::datasets>=2.19
+  - conda-forge::accelerate>=0.30
+  - conda-forge::tokenizers
+
+  # Data & numerics
+  - conda-forge::numpy
+  - conda-forge::pandas
+  - conda-forge::scikit-learn=1.8.0   # the version the committed results were fitted with:
+                                     # the logistic baseline on raw activations is
+                                     # sensitive to the lbfgs version (1.9 differs)
+  - conda-forge::scipy           # used by src/probing/crosscov.py
+
+  # Storage & pipelines
+  - conda-forge::dvc>=3.0
+  - conda-forge::duckdb>=0.10
+
+  # Templating
+  - conda-forge::jinja2
+
+  # Plotting
+  - conda-forge::matplotlib
+  - conda-forge::seaborn
+  - conda-forge::plotly          # interactive HTML subspace scatter (--html)
+
+  # Dev utilities
+  - conda-forge::tqdm
+  - conda-forge::ipykernel
+  - conda-forge::jupyter
+  - conda-forge::pytest
+
+  - pip:
+    - nnsight>=0.7           # activation extraction and interventions

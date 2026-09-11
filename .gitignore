@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+
+# Data & outputs (tracked by DVC)
+/data/
+/outputs/*
+# ...except the paper's own results, which are committed so they can be read
+# without DVC, a GPU, or a download.  They are `cache: false` DVC outputs, so git
+# is the only thing tracking them.
+!/outputs/reproductions/
+/outputs/reproductions/*
+!/outputs/reproductions/promise_of_contrast/
+
+# DVC internal
+.dvc/cache/
+.dvc/tmp/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Editor / tooling state
+.claude/
+*.swp
+.pytest_cache/
+.~lock.*#
+
+# Misc
+.env
+*.log
+site/
