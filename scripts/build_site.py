@@ -28,12 +28,15 @@ SITE = {
     "venue": "BlackboxNLP 2026",
     "domain": "contrast.stefanfs.me",
     "links": [("Code", "https://github.com/sfschouten/promise_of_contrast"),
-              ("Paper", None)],          # ACL Anthology link once it exists
+              ("Paper", "https://aclanthology.org/2026.blackboxnlp-1.67/")],
 }
 MODELS = {"llama2_7b": "Llama-2-7B", "llama3_8b": "Llama-3.1-8B"}
 BASES = {"generalized_cross_covariance_8": "g-tcPCA", "cross_covariance_8": "tcPCA"}
 MAX_POINTS = 350          # per class, per figure
 OUT = ROOT / "site"
+# Made by scripts/reproductions/promise_of_contrast/tetrahedron_video.py; the site shows it
+# above the interactive tetrahedra when it exists, and skips it otherwise.
+VIDEO = ROOT / "outputs" / "reproductions" / "promise_of_contrast" / "llama2_7b" / "tetrahedron_tour.mp4"
 
 CSS = """
 :root { --bg:#fbfaf7; --fg:#1d1d1f; --muted:#5f6368; --line:#e3e1dc; --card:#ffffff; --accent:#1b6ca8; }
@@ -53,6 +56,8 @@ h1 { font-size: 2.3rem; line-height: 1.15; margin: 0 0 6px; letter-spacing: -0.0
 .links span { color: var(--muted); font-weight: 400; }
 h2 { font-size: 1.45rem; margin: 44px 0 6px; }
 p.lede { color: var(--muted); max-width: 760px; margin: 0 0 18px; }
+.card.wide { grid-column: 1 / -1; }
+.card video { display: block; width: 100%; height: auto; border-radius: 6px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(460px, 100%), 1fr)); gap: 18px; }
 .card { min-width: 0; overflow: hidden; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 10px 4px; }
 .card .plotly-graph-div { width: 100% !important; }
@@ -345,6 +350,14 @@ def build(placeholder: bool) -> None:
 
     sections = []
     cards = []
+    if VIDEO.exists():
+        import shutil
+        shutil.copyfile(VIDEO, OUT / VIDEO.name)
+        cards.append(f'<div class="card wide"><h3>Llama-2-7B · g-tcPCA · animated</h3>'
+                     f'<video src="{VIDEO.name}" autoplay muted loop playsinline controls '
+                     f'preload="auto" width="1920" height="1080"></video></div>')
+    else:
+        print(f"  tetrahedron video: skipped (no {VIDEO.relative_to(ROOT)})")
     for model, mname in MODELS.items():
         for method, bname in BASES.items():
             try:
@@ -354,8 +367,10 @@ def build(placeholder: bool) -> None:
     sections.append(("Negation and truth",
                      "Four statements per city: affirmed or negated, with the correct or an incorrect "
                      "country. On the first three components the four statement types form a "
-                     "tetrahedron. Drag to rotate; the buttons look down the axis that collapses "
-                     "one contrast.", cards))
+                     "tetrahedron. The animation looks down each contrast axis in turn, where that "
+                     "contrast collapses and the other two form a square, then turns the solid "
+                     "freely. Below, drag to rotate; the buttons look down the axis that "
+                     "collapses one contrast.", cards))
     for key, title, lede in (
             ("trinary", "True, false, neither", "Statements about real cities (true or false) "
              "and invented ones (neither), on the first two components."),
